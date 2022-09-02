@@ -1,0 +1,101 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper, margin=3cm]{geometry}
+
+\usepackage{natbib}
+\usepackage{charter} % Use the Charter font
+\usepackage[utf8]{inputenc} % Use UTF-8 encoding
+\usepackage{microtype} % Slightly tweak font spacing for aesthetics
+\usepackage[english, spanish, es-nodecimaldot]{babel} % Language hyphenation and typographical rules
+\usepackage{amsthm, amsmath, amssymb} % Mathematical typesetting
+\usepackage{float} % Improved interface for floating objects
+\usepackage[]{threeparttable}
+\usepackage[]{booktabs}
+\usepackage{enumerate}
+\usepackage[T1]{fontenc}
+
+\title{Taller 1 - Big data and Machine learning for Economics}
+\author{Alison Ruiz - Código\\ 
+Daniel Delgado - Código\\
+José Julián Parra Montoya - Código 202213144 }
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Descripción de los datos}
+
+La Gran Encuesta Integrada de Hogares (GEIH) es una encuesta recolectada por el DANE de manera mensual, que busca aportar insumos para el análisis del mercado laboral.
+En este caso se utilizará la encuesta realizada en 2018 restringida a individuos mayores de 18 años. Para el análisis que se busca realizar se requieren determinar una(s) variables(s) que midan adecuadamente los \emph{earnings} (ganancias) y el \emph{income} (ingreso). En economía laboral ambas cosas son conceptualmente diferentes:
+mientras que las ganancias corresponden al salario o ingresos laborales, el ingreso fuentes distintas al factor trabajo como
+las ganancias de capital CITA.\\
+Para medir \emph{earnings} se utilizará el ingreso laboral (\emph{y\_ingLab\_m} en la GEIH). De acuerdo a una exploración previa de los datos, esta variable consiste en la suma de los salarios 
+percibidos por las ocupaciones primarias y secundarias, y beneficios laborales como auxilio de transporte, auxilio de vivienda, viaticos, salarios en especie, bonificaciones y la proporción mensual de los diferentes tipos de prima, pero excluyendo
+los montos mensuales de subsidios alimenticios y subsidios por accidentes, así como las ganancias de los trabajadores cuenta propia. Esta variable es más apropiada que simplemente el salario (\emph{y\_salary\_m}) para medir \emph{earnings} ya que captura
+también los ingresos laborales de ocupaciones secundarias, cosa que no hace la primera.\\
+Para medir \emph{income} se utilizará el ingreso total (\emph{ingtot}). Esta variable, además de incluir el ingreos laboral, contempla las ganancias de los trabajadores cuenta propia, ingresos por arrendamientos e intereses, jubilaciones y pensiones, 
+transferencias monetarias, y el ingreso de los desocupados o inactivos. 
+Un hecho ampliamente documentado en las encuestas de hogares es que las características de los individuos explican el patrón de datos faltantes en las variables de ingreso CITA. Esto indica que no es apropiado omitir los datos faltantes pues esto sesgaría la distribución
+de ingresos en los análisis posteriores. CITA MARIA ISABEL encuentran que el método de imputación óptimo para la GEIH es el método Hot Deck. De acuerdo a la descripcion metodológica del DANE, el proceso de imputación de las variables de ingreso ya fue realizado, y estas variables
+se representan en la base con el sufijo \emph{es} (\emph{impaes} para la imputación de la variable \emph{impa} o ingreso de la ocupación principal, etc.). En el cuadro 1 se presenta un conteo de los datos faltantes en las variables de Ingreso Laboral e Ingreso Total.
+
+\begin{table}[H]
+    \centering
+    \caption{Datos faltantes} 
+    \label{tab:missing}
+    \begingroup\fontsize{9pt}{10pt}\selectfont
+    \begin{tabular}{lrr}
+      \hline
+    \addlinespace
+      & Faltantes & Total \\
+    \addlinespace
+     \hline
+     Ingreso total &   0 & 24054 \\ 
+      Ingreso laboral & 14269 & 24054 \\ 
+      Ingreso Laboral Imputado & 4847 & 24054 \\ 
+       \addlinespace
+    \hline
+    \addlinespace
+    \end{tabular}
+    \endgroup
+    \end{table}
+Como puede observarse, la variable Ingreso Total no contiene datos faltantes. Esto se debe a que esta variable corresponde a la suma de las variables descritas previamente teniendo en cuenta, en cada caso, la versión de la variable donde se fue necesario realizar la imputación,
+de manera que esta variable ya fue imputada. En el caso de la variable Ingreso Laboral, se observa que existen datos faltantes; no obstante, algunos de sus componentes como los ingresos de las ocupaciones primaria y secundaria fueron imputados por el DANE, de manera que se pueda reducir la cantidad de datos faltantes
+aprovechando la imputación realizada por el DANE y sustrayendo las variables adecuadas (como la ganancia de los independientes, el auxilio por accidente y el auxilio alimenticio).
+En la última fila del cuadro 1 se muestra la variable con la corrección. Los demás datos faltantes consisten en casos donde el individuo es un trabajador por cuenta propia para el cual no es posible determinar qué parte de sus ganancias corresponde a ingresos laborales.\\
+El cuadro 2 contiene algunas estadísticas descriptivas. Como puede observarse, tras imputar la variable de Ingreso laboral se obtiene una distribución a la izquierda de la distribución de ingreso total. Esto es de esperarse pues 
+esta ultima variable contiene más tipos de ingresos de manera que debería producir valores más grandes para cada individuo. De no imputar, como puede observarse en la tercera fila, se tendria una distribución de Ingreso Laboral a la derecha de la distribución de Ingreso total debido
+a la omisión de la cola izquierda de la distribución.
+
+
+\begin{table}[H]
+    \centering
+    \caption{Estadísticas descriptivas} 
+    \label{tab:descriptive}
+    \begingroup\fontsize{9pt}{10pt}\selectfont
+    \begin{tabular}{lrrrr}
+      \hline
+    \addlinespace
+      & Media & Mediana & D.E. & Percentil 90 \\
+    \addlinespace
+     \hline
+     Ingreso total & 1393020.16 & 910287.71 & 2406153.43 & 2978279.97 \\ 
+      Ingreso laboral & 1757076.49 & 1040000.00 & 2413728.88 & 3282399.95 \\ 
+      Ingreso Laboral imputado & 1030381.64 & 781242.00 & 2053911.31 & 2206933.30 \\ 
+      Edad & 42.82 & 40.00 & 17.08 & 67.00 \\ 
+      Mujer & 0.53 & 1.00 & 0.50 & 1.00 \\ 
+       \addlinespace
+    \hline
+    \addlinespace
+    \end{tabular}
+    \endgroup
+    \end{table}
+
+
+
+
+    \end{document}
+
+
+
+

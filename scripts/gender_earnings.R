@@ -1,4 +1,5 @@
 rm(list = ls())
+
 library(pacman)
 p_load(tidyverse,knitr,kableExtra,here,jtools,ggstance,broom,broom.mixed,skimr,readxl)
 set.seed(10101)
@@ -7,7 +8,20 @@ set.seed(10101)
 path <- here()
 setwd(path)
 Data_gfg <- read_excel("./datos/geih_2018_v1-9-22.xlsx")
-head(Data_gfg)
+head(Data_gfg$sex)
+
+View(Data_gfg)
+
+# Definición de X y Y
+
+X =Data_gfg$female
+X_Nulos=sum(is.na(Data_gfg$ingtot )) #validacion de nulos en variable objetivo 
+V1 = Data_gfg[, c('age')]
+Y = Data_gfg$ingtot
+
+#Grafico de distribución de Genero
+etiquetas <- paste0(c('Masculino','Femenino'), " = ", round(100 * table(X)/sum(table(X)), 2), "%")
+Pie(table(X), labels = etiquetas,clockwise = TRUE, main = 'Distribución de genero')
 
 # Definición de X y Y
 X = Data_gfg[, c('age')]

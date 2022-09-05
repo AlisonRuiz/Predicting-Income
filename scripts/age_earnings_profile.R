@@ -1,10 +1,17 @@
+
+# LIBRERIAS ---------------------------------------------------------------
+
+
 rm(list = ls())
 library(pacman)
 p_load(tidyverse,knitr,kableExtra,here,jtools,ggstance,broom,broom.mixed,skimr,readxl,boot,openxlsx)
 set.seed(10101)
 
+
+# LECTURA DE DATOS -------------------------------------------------------------------
+
 # Carga de información
-read.xlsx(here("stores","geih_final.xlsx"))
+Data_gfg <- read.xlsx(here("stores","geih_final.xlsx"))
 head(Data_gfg)
 
 # Definición de X y Y
@@ -12,10 +19,16 @@ X = Data_gfg[, c('age')]
 Y = Data_gfg$y_ingLab_m_2
 
 # Creación de dataframe
-dat = cbind(Y,X)
+dat = cbind(Y,age=X) %>% as.data.frame()
 skim(dat)
+
 # Eliminación de NA en variable imputada y_ingLab_m_2
 dat2 <- na.omit(dat)
+
+
+
+# ANALISIS DE REGRESION Y GRAFICAS ----------------------------------------
+
 
 # Regresión lineal
 mod <- lm("Y ~ age+ I(age^2)", data = dat2)

@@ -34,6 +34,7 @@ Este proyecto requiere R y las siguientes librerias instal
 * library(haven)
 * library(scales)
 
+install.packages("sandwich")
 
 ### Data
 

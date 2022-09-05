@@ -1,17 +1,17 @@
+
+# LIBRERIAS ---------------------------------------------------------------
+
 rm(list = ls())
-#install.packages("sandwich")
-#install.packages('fastDummies')
+
 library(pacman)
 library(scales)
-library("sandwich")
-library('fastDummies')
-p_load(tidyverse,knitr,kableExtra,here,jtools,ggstance,broom,broom.mixed,skimr,readxl)
+library(sandwich)
+library(fastDummies)
+p_load(tidyverse,knitr,kableExtra,here,jtools,ggstance,broom,broom.mixed,skimr,readxl,here)
 set.seed(10101)
 
 # 1. Carga de información----------------------------------------------------------------
-path <- here()
-setwd(path)
-Data_gfg <- read_excel("./datos/geih_2018_v1-9-22.xlsx")
+Data_gfg <- read_excel(here("stores","geih_final.xlsx"))
 head(Data_gfg$sex)
 #View(Data_gfg)
 
@@ -105,11 +105,12 @@ mean_dat <- apply(select_if(dat2, is.numeric), 2, mean)
 mean_dat <- data.frame(t(mean_dat))
 mode_dat <- apply(select_if(dat2, is.factor), 2,mode)
 mode_dat <- data.frame(t(mode_dat))
+
 mean_obs <- cbind(mode_dat, mean_dat)
 mean_obs2 <- mean_obs[rep(1, 40),]
 
 mean_obs2$temp <- seq(-5, 35, length = 40)
-mean_obs2$y_hat <- predict(mod, mean_obs2)
+#mean_obs2$y_hat <- predict(mod, mean_obs2)
 
 
 ggplot(dat2, aes(y = Y, x = age)) +

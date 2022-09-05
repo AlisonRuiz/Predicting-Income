@@ -29,11 +29,11 @@ Este proyecto requiere R y las siguientes librerias instaladas
 * library(xtable)#tablas
 * library(openxlsx)#lectura xlsx
 * library(janitor)#tabla de frecuencia
-* library(data.table)
-* library(kableExtra)
-* library(haven)
-* library(scales)
-* library(boot)
+* library(data.table)#manejo de dataframes
+* library(kableExtra)#tablas
+* library(haven)#lectura de dta
+* library(scales)#graficos
+* library(boot)#bootstrap
 
 Para instalarlas se debe correr el comando install.packages, a continuación un ejemplo de esto.
 

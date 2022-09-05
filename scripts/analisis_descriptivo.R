@@ -1,29 +1,33 @@
 
 # LIBRERIAS ---------------------------------------------------------------
 
+rm(list=ls())
+
 library(ggplot2)#graficar
 library(tidyverse)#organizar datos
 library(xtable)#tablas
 library(openxlsx)#lectura xlsx
 library(janitor)#tabla de frecuencia
+library(here)
 
 # SOURCE SCRIPT DE FUNCIONES ----------------------------------------------
 
 
 source("funcion_descriptivas.R")
-source("diferencia_medias.R")
+source("funcion_diferencia_medias.R")
 
 
 # LECTURA DE DATOS --------------------------------------------------------
 
 
-geih <-read.xlsx(here("datos","geih.xlsx"))
+geih <-read.xlsx(here("stores","geih.xlsx"))
 
 #Filtrado por edad y creacion de la variable female
 geih_2 <- geih %>% 
   filter(age>=18) %>% 
   mutate(female=ifelse(sex==0,1,0)) %>% 
-  select(-...1)
+  rowid_to_column("id_tabla") %>% 
+  select(-...1) 
 
 
 
@@ -69,6 +73,8 @@ geih_2 %>%
          
   ) %>% 
   select(id_tabla,impa,impa_menosauxalim,y_ingLab_m,isa,y_auxilioAliment_m,y_accidentes_m) %>% 
+  #se verifica si la suma es consistente omitiendo errores de redondeo
+  
   filter(!(impa_menosauxalim-y_ingLab_m<=abs(1))) 
 
 #cuando isa>0
@@ -91,8 +97,9 @@ geih_2 %>%
          
   ) %>% 
   select(id_tabla,impa,isa,impa_isa_menos_auxalim_acc,y_ingLab_m,y_auxilioAliment_m,y_accidentes_m,y_salary_m,p6500) %>% 
-  filter(!(impa_isa_menos_auxalim_acc-y_ingLab_m<=abs(1))) %>% 
-  view
+  #se verifica si la suma es consistente omitiendo errores de redondeo
+  
+  filter(!(impa_isa_menos_auxalim_acc-y_ingLab_m<=abs(1)))
 
 
 #cuando no hay ganancia de independientes ( no todos los cuenta propia generan ganancia, algunos tienen ingreso laboral), 
@@ -101,19 +108,14 @@ geih_2 %>%
   filter(is.na(y_ingLab_m)&!is.na(y_gananciaIndep_m)) %>% 
   filter(!is.na(impa)|!is.na(impaes)) %>% 
   select(id_tabla,impa,isa,impaes,isaes,y_ingLab_m,
-         y_auxilioAliment_m,y_accidentes_m,y_salary_m,p6500,ends_with("_m"),cuentaPropia) %>% view
-
-geih_2 %>% 
-  filter(is.na(y_ingLab_m)&!is.na(y_gananciaIndep_m)&cuentaPropia==1) %>%
-  filter(y_gananciaNeta_m!=y_gananciaIndep_m) %>% 
-  view
+         y_auxilioAliment_m,y_accidentes_m,y_salary_m,p6500,ends_with("_m"),cuentaPropia)
 
 
 #confirmacion: crear una variable ing_lab que contiene la suma de todas las variables anteriores cuidando cuando alguna sea na.
 geih_2 %>% 
   filter(!is.na(y_ingLab_m)) %>% 
   mutate(
-    
+    #se construye una variable que suma las variables previamente encontradas omitiendo los faltantes en cada caso.
     ing_lab=
       case_when(
         
@@ -137,17 +139,12 @@ geih_2 %>%
         
         TRUE~0
         
-      ),
-    
-    
-    
-    
-  ) %>% 
-  filter(!(y_ingLab_m-ing_lab<=abs(1)))
-#  select(id_tabla,ing_lab,ing_lab_equal_y_inglab_m,impa,isa,impaes,isaes,y_ingLab_m,
-#         y_auxilioAliment_m,y_accidentes_m,y_salary_m,p6500,ends_with("_m")) %>% view
+      )) %>%
+  #se verifica si la suma es consistente omitiendo errores de redondeo
+  filter(!(y_ingLab_m-ing_lab<=abs(1))) %>% view
 
-
+#Quedan solo 7 filas aparentemente inconsistentes porque tienen ingreso laboral pero no reportan ocupación primaria. Como esto es menos del 0.01% de los datos
+#se puede afirmar que la construccion es correcta.
 
 #Nueva versión de los datos, utilizando ingresos imputados previamente.
 
@@ -362,4 +359,4 @@ dist_ingresos %>%
         strip.placement = "outside",
         strip.text = element_text(face="bold"))
 
-#ggsave("ingresos_edad.png",width=8,height = 5,dpi="retina")
+write.xlsx(geih_4,"geih_final.xlsx")

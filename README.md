@@ -21,7 +21,7 @@ El análisis se desarrolla en 5 etapas:
 
 ### Install
 
-Este proyecto requiere R y las siguientes librerias instal
+Este proyecto requiere R y las siguientes librerias instaladas
 
 * library(pacman)
 * library(ggplot2)#graficar
@@ -33,22 +33,27 @@ Este proyecto requiere R y las siguientes librerias instal
 * library(kableExtra)
 * library(haven)
 * library(scales)
+* library(boot)
 
+Para instalarlas se debe correr el comando install.packages, a continuación un ejemplo de esto.
+
+```bash
 install.packages("sandwich")
+```
 
 ### Data
 
-En la carpeta [`Datos`](https://github.com/AlisonRuiz/Predicting-Income/tree/main/datos) se encuentra el set de datos en excel procesado por los siguienets scripts
+En la carpeta [`stores`](https://github.com/AlisonRuiz/Predicting-Income/tree/main/stores) se encuentra el set de datos en excel procesado por los siguienets scripts
 
 * web_scrapping.R
 * funcion_descriptivas.R
 
-La Descipción de las variaboles se puede encontrar en:  https://www.dane.gov.co/index.php/estadisticas-por-tema/mercado-laboral/empleo-y-desempleo/geih-historicos
+La Descipción de las variables se puede encontrar en:  https://www.dane.gov.co/index.php/estadisticas-por-tema/mercado-laboral/empleo-y-desempleo/geih-historicos
 
 
 ### Scripts
 
-El proyecto ceuntas con los siguientes scripts de R:
+El proyecto cuenta con los siguientes scripts de R:
 
 * [`web_scrapping.R`](https://github.com/AlisonRuiz/Predicting-Income/blob/main/scripts/web_scrapping.R)
 * [`funcion_descriptivas.R`](https://github.com/AlisonRuiz/Predicting-Income/blob/main/scripts/funcion_descriptivas.R)
@@ -59,4 +64,4 @@ El proyecto ceuntas con los siguientes scripts de R:
 
 ### Informe
 
-El [`informe`](https://github.com/AlisonRuiz/Predicting-Income/blob/main/informe/solucion_taller_1.tex) se encuentra en formato .tex. en este archivo se resumen los resultados y se explica su interpretación.
+El informe se encuentra en la carpeta [`document`](https://github.com/AlisonRuiz/Predicting-Income/blob/main/document/solucion_taller_1.tex) se encuentra en formato .tex y .pdf. En este archivo se resumen los resultados y se explica su interpretación.

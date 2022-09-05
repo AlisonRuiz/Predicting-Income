@@ -1,7 +1,10 @@
 rm(list = ls())
-
+#install.packages("sandwich")
+#install.packages('fastDummies')
 library(pacman)
 library(scales)
+library("sandwich")
+library('fastDummies')
 p_load(tidyverse,knitr,kableExtra,here,jtools,ggstance,broom,broom.mixed,skimr,readxl)
 set.seed(10101)
 
@@ -10,13 +13,13 @@ path <- here()
 setwd(path)
 Data_gfg <- read_excel("./datos/geih_2018_v1-9-22.xlsx")
 head(Data_gfg$sex)
-View(Data_gfg)
+#View(Data_gfg)
 
 # 2. Definición de X y Y------------------------------------------------------------------
 
 # 2.1. Validacion de outliers
 
-X_Nulos=sum(is.na(df$ingtot)) #validacion de nulos en variable objetivo
+X_Nulos=sum(is.na(Data_gfg$ingtot)) #validacion de nulos en variable objetivo
 
 X_cero=Data_gfg[Data_gfg$ingtot==0,]$female #validacion de nulos en variable objetivo
 df<-Data_gfg[Data_gfg$ingtot!=0,]
@@ -28,9 +31,11 @@ g_caja<-boxplot(df$ingtot, col="skyblue", frame.plot=F) # Datos ajasutados
 X_inicial =Data_gfg$female
 X =as.factor(df$female)
 V1 = df[, c('age')]
+W = df[, c('oficio')]
 Y = df$ingtot+1 #re escalando los datos
 dat = as.data.frame(cbind(Y,X))
 dat2 = as.data.frame(cbind(Y,X,V1))
+dat3 = as.data.frame(cbind(Y,X,V1,W))
 skim(dat2)
 glimpse(dat2)
 
@@ -92,13 +97,55 @@ summ(mod, Robust='HC1')
 # 5.2. Analisis de las variables---------------------------------------------------------------------
 
 
+plot_summs(mod, colors = "black", rescale.distributions = TRUE,
+           plot.distributions = TRUE, robust = TRUE)
+
+
+mean_dat <- apply(select_if(dat2, is.numeric), 2, mean)
+mean_dat <- data.frame(t(mean_dat))
+mode_dat <- apply(select_if(dat2, is.factor), 2,mode)
+mode_dat <- data.frame(t(mode_dat))
+mean_obs <- cbind(mode_dat, mean_dat)
+mean_obs2 <- mean_obs[rep(1, 40),]
+
+mean_obs2$temp <- seq(-5, 35, length = 40)
+mean_obs2$y_hat <- predict(mod, mean_obs2)
+
+
+ggplot(dat2, aes(y = Y, x = age)) +
+  geom_point() +
+  geom_line(data = mean_obs2, aes(x = age, y = Y, 
+                                  color = "with controls"), size = 1) +
+  stat_smooth(formula = 'y ~ x', method = lm, se = FALSE, 
+              aes(color = "without controls"), 
+              size = 1) +
+  theme_bw() +
+  labs(x = "Temperature in Celsius", 
+       y = "Number of bicycles rented",
+       title = "Predicted values with changes in temperature") +
+  scale_color_manual(name = "Model", values = c("red", "blue"))
+
+
+
 # 6. Regresión Lineal incluyendo variables de trabajos similares----------------------------------
 
+# 6.1 Generación de las variables dummies
+
+
+dat3=dat3[!is.na(dat3$oficio),]
+
+dat4 <- dummy_cols(dat3, select_columns = 'oficio')
+dat4=dat4[,-4]
+
+
 # 6.1 Regresión lineal
-mod <- lm("Y ~ X", data = dat)
+mod <- lm("I(log(Y)) ~ .", data = dat4)
 summary(mod)
 
 # 6.2. Analisis de las variables---------------------------------------------------------------------
+
+skim(dat2)
+glimpse(dat4)
 
 # 6.3. modelo con ajustE FLW---------------------------------------------------------------------
 

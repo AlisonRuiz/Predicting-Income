@@ -148,5 +148,30 @@ summary(mod)
 skim(dat2)
 glimpse(dat4)
 
-# 6.3. modelo con ajustE FLW---------------------------------------------------------------------
+
+# 6.3. modelo mediente boostrap
+
+# función para calcular correlación entre variables
+corr.fun <- function(data, idx)
+{
+  df <- data[idx, ]
+  # Tomar columnas 1 y 2 para cálculo de correlación por medio del 
+  #método spearman
+  c(cor(df[, 1], df[, 2], method = 'spearman'))
+}
+
+# Realización de bootstrap
+bootstrap <- boot(dat, corr.fun, R = 1000)
+bootstrap
+
+
+# Gráfica de bootstrap
+plot(bootstrap)
+
+
+# Intervalos de confianza por medio de bootstrap 
+boot.ci(boot.out = bootstrap,
+        type = c("norm", "basic",
+                 "perc"))
+
 

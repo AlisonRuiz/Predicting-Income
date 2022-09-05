@@ -1,79 +1,104 @@
 rm(list = ls())
 
 library(pacman)
+library(scales)
 p_load(tidyverse,knitr,kableExtra,here,jtools,ggstance,broom,broom.mixed,skimr,readxl)
 set.seed(10101)
 
-# Carga de información
+# 1. Carga de información----------------------------------------------------------------
 path <- here()
 setwd(path)
 Data_gfg <- read_excel("./datos/geih_2018_v1-9-22.xlsx")
 head(Data_gfg$sex)
-
 View(Data_gfg)
 
-# Definición de X y Y
+# 2. Definición de X y Y------------------------------------------------------------------
 
-X =Data_gfg$female
-X_Nulos=sum(is.na(Data_gfg$ingtot )) #validacion de nulos en variable objetivo 
-V1 = Data_gfg[, c('age')]
-Y = Data_gfg$ingtot
+# 2.1. Validacion de outliers
 
-#Grafico de distribución de Genero
+X_Nulos=sum(is.na(df$ingtot)) #validacion de nulos en variable objetivo
+
+X_cero=Data_gfg[Data_gfg$ingtot==0,]$female #validacion de nulos en variable objetivo
+df<-Data_gfg[Data_gfg$ingtot!=0,]
+
+g_caja<-boxplot(df$ingtot, col="skyblue", frame.plot=F)
+df<-df[!(df$ingtot %in% g_caja$out),] # eliminacion de outliers
+g_caja<-boxplot(df$ingtot, col="skyblue", frame.plot=F) # Datos ajasutados
+
+X_inicial =Data_gfg$female
+X =as.factor(df$female)
+V1 = df[, c('age')]
+Y = df$ingtot+1 #re escalando los datos
+dat = as.data.frame(cbind(Y,X))
+dat2 = as.data.frame(cbind(Y,X,V1))
+skim(dat2)
+glimpse(dat2)
+
+#View(dat)
+
+# 3. Analisis exploratorio de datos------------------------------------------------------------------
+
+
+# 3.1 Grafico de distribución de Genero con ingreso mayor a 0
+etiquetas <- paste0(c('Masculino','Femenino'), " = ", round(100 * table(X_inicial)/sum(table(X_inicial)), 2), "%")
+pie(table(X_inicial), labels = etiquetas,clockwise = TRUE, main = 'Distribución de genero inicial')
+
+# 3.1 Grafico de distribución de Genero con ingreso mayor a 0
 etiquetas <- paste0(c('Masculino','Femenino'), " = ", round(100 * table(X)/sum(table(X)), 2), "%")
-Pie(table(X), labels = etiquetas,clockwise = TRUE, main = 'Distribución de genero')
+pie(table(X), labels = etiquetas,clockwise = TRUE, main = 'Distribución de genero sin ingrso 0')
 
-# Definición de X y Y
-X = Data_gfg[, c('age')]
-Y = Data_gfg$y_ingLab_m
-dat = cbind(Y,X)
-skim(dat)
+# 3.1 Grafico de distribución de Genero ingreso 0
+etiquetas <- paste0(c('Masculino','Femenino'), " = ", round(100 * table(X_cero)/sum(table(X_cero)), 2), "%")
+pie(table(X_cero), labels = etiquetas,clockwise = TRUE, main = 'Distribución de genero (Ingreso 0)')
 
-# Regresión lineal sin escalar datos
-mod <- lm("Y ~ age+ I(age^2)", data = dat)
+# 3.2 Grafico de distribución de edades
+
+# 3.3 Correlación de edad vs ingresos
+
+
+
+# 4. Regresión Lineal de ingreso por genero---------------------------------------------------------
+
+# 4.1 Regresión lineal con log
+mod <- lm("I(log(Y)) ~ X", data = dat)
+summary(mod)
+tidy(mod)
+summ(mod, Robust='HC1')
+
+mean(df$ingtot)
+
+# 4.2 Regresión lineal
+
+mod <- lm("Y ~ X", data = dat)
+summary(mod)
+tidy(mod)
+summ(mod, Robust='HC1')
+
+
+# 4.2. Analisis de las variables---------------------------------------------------------------------
+
+
+# 5. Regresión Lineal de ingreso por genero utilizando edades y genero----------------------------------
+
+
+# 5.1 Regresión lineal
+
+mod <- lm("I(log(Y)) ~ X + age", data = dat2)
+summary(mod)
+tidy(mod)
+summ(mod, Robust='HC1')
+
+
+# 5.2. Analisis de las variables---------------------------------------------------------------------
+
+
+# 6. Regresión Lineal incluyendo variables de trabajos similares----------------------------------
+
+# 6.1 Regresión lineal
+mod <- lm("Y ~ X", data = dat)
 summary(mod)
 
+# 6.2. Analisis de las variables---------------------------------------------------------------------
 
-# Gráfica de distribución de datos
-ggplot(dat, aes(y = Y, x = age)) +
-  geom_point() +
-  theme_bw() +
-  labs(x = "Age", 
-       y = "Earning",
-       title = "Age-earnings profile distribution")
+# 6.3. modelo con ajustE FLW---------------------------------------------------------------------
 
-# caja y bigotes datos sin escalar
-ggplot(data=dat , mapping = aes(age , Y)) + 
-  geom_boxplot()
-
-# Graficas distribución de datos
-ggplot() + geom_histogram(data=dat , aes(x=age) , fill="#99FF33" , alpha=0.5)
-ggplot() + geom_histogram(data=dat , aes(x=Y) , fill="#99FF33" , alpha=0.5)
-
-
-# Ajuste del modelo en la media
-Modes <- function(x) {
-  ux <- unique(x)
-  tab <- tabulate(match(x, ux))
-  ux[tab == max(tab)]
-}
-
-mean_dat <- apply(select_if(dat, is.numeric), 2, mean)
-mean_dat <- data.frame(t(mean_dat))
-mode_dat <- apply(select_if(dat, is.factor), 2, Modes)
-mode_dat <- data.frame(t(mode_dat))
-mean_obs <- cbind(mode_dat, mean_dat)
-mean_obs2 <- mean_obs[rep(1, 40),]
-mean_obs2$temp <- seq(-5, 35, length = 40)
-mean_obs2$y_hat <- predict(mod, mean_obs2)
-
-
-# Gráfica regresión lineal
-ggplot(dat, aes(y = Y, x = age)) +
-  geom_point() +
-  stat_smooth(formula = 'y ~ x + I(x^2)', method = lm, se = FALSE, 
-              size = 1) +
-  theme_bw() +
-  labs(x = "Age", 
-       y = "Earning",
-       title = "Age-earnings profile linear regression")

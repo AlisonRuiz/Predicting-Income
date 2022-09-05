@@ -1,25 +1,23 @@
 rm(list = ls())
 library(pacman)
-p_load(tidyverse,knitr,kableExtra,here,jtools,ggstance,broom,broom.mixed,skimr,readxl,boot)
+p_load(tidyverse,knitr,kableExtra,here,jtools,ggstance,broom,broom.mixed,skimr,readxl,boot,openxlsx)
 set.seed(10101)
 
 # Carga de información
-path <- here()
-setwd(path)
-Data_gfg <- read_excel("../datos/geih_2018_v3-9-22.xlsx")
+read.xlsx(here("stores","geih_final.xlsx"))
 head(Data_gfg)
 
 # Definición de X y Y
 X = Data_gfg[, c('age')]
 Y = Data_gfg$y_ingLab_m_2
+
+# Creación de dataframe
 dat = cbind(Y,X)
 skim(dat)
-
-# Eliminar filas con valores NA
+# Eliminación de NA en variable imputada y_ingLab_m_2
 dat2 <- na.omit(dat)
 
-
-# Regresión lineal sin escalar datos
+# Regresión lineal
 mod <- lm("Y ~ age+ I(age^2)", data = dat2)
 summary(mod)
 
@@ -39,6 +37,7 @@ ggplot(data=dat2, mapping = aes(age , Y)) +
 # Graficas distribución de datos
 ggplot() + geom_histogram(data=dat2 , aes(x=age) , fill="#99FF33" , alpha=0.5)
 ggplot() + geom_histogram(data=dat2 , aes(x=Y) , fill="#99FF33" , alpha=0.5)
+
 
 
 # Ajuste del modelo en la media
@@ -61,14 +60,22 @@ mean_obs2$y_hat <- predict(mod, mean_obs2)
 # Gráfica regresión lineal
 ggplot(dat2, aes(y = Y, x = age)) +
   geom_point() +
-  stat_smooth(formula = 'y ~ x + I(x^2)', method = lm, se = FALSE, 
+  stat_smooth(formula = 'y ~ x + I(x^2)+I(x^3) ', method = lm, se = FALSE, 
               size = 1) +
+  stat_smooth(formula = 'y ~ x + I(x^2)', method = lm, se = FALSE, 
+              size = 1,color="red" ) +
+  xlab("Edad")+
+  ylab("Earnings")+
   theme_bw() +
-  labs(x = "Age", 
-       y = "Earning",
-       title = "Age-earnings profile linear regression")
-#geom_vline
-
+  theme(text=element_text(size=9, color="black"),
+        panel.grid=element_blank(),
+        panel.spacing = unit(1, "lines"),
+        legend.position=c(0.85,0.85),
+        axis.text.x=element_text(colour="black"),
+        axis.text.y=element_text(colour="black"),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        strip.text = element_text(face="bold"))
 
 
 # función para calcular correlación entre variables
@@ -87,6 +94,8 @@ bootstrap
 
 
 # Gráfica de bootstrap
+dev.off()
+par(mar = rep(2,4))
 plot(bootstrap)
 
 

@@ -14,11 +14,13 @@
 \usepackage[T1]{fontenc}
 \usepackage{makecell}
 \usepackage{adjustbox}
+\usepackage{hyperref}
+
 
 \title{\bf Taller 1: Predicting Income \\ Big data and Machine learning for Economics}
 
 \author{Alison Gissell Ruiz Ruiz - Código 202116230\\ 
-Daniel Delgado - Código\\
+John Daniel Delgado Vargas - Código 202225721\\
 José Julián Parra Montoya - Código 202213144 }
 \date{}
 
@@ -26,22 +28,24 @@ José Julián Parra Montoya - Código 202213144 }
 
 \maketitle
 
+\section{Introducción}
+
+La Gran Encuesta Integrada de Hogares (GEIH) es una encuesta recolectada por el DANE de manera mensual, que busca aportar insumos para el análisis del mercado laboral. En este trabajo se busca desarrollar modelos que permitan realizar inferencia y predecir el ingreso individual con base en características sociodemográficas halladas en esta encuesta. En este sentido se desarrolla un modelo que representa la relación entre las ganancias y la edad de las personas, así como la relación entre las ganancias y el género, con el fin de analizar la brecha salarial que podrían o no tener las personas de género femenino con respecto al masculino. Finalmente se elige, entre ocho especificaciones, la más precisa al momento de predecir las ganancias. \\
+
+Para la estimación de los diferentes modelos se utiliza la GEIH recolectada para Bogotá en el año 2018, y restringida a individuos mayores de 18 años. Los datos empleados fueron obtenidos mediante \emph{webscrapping}, método que facilita la extracción de información de páginas web. El código de obtención de información y el desarrollo de los algoritmos previamente descritos se desarrolla empleando \emph{R} como lenguaje de programación.\\
+
 \section{Descripción de los datos}
 
-La Gran Encuesta Integrada de Hogares (GEIH) es una encuesta recolectada por el DANE de manera mensual, que busca aportar insumos para el análisis del mercado laboral. Se busca desarrollar una predicción del ingreso de una persona dada ciertas características, esto podría ser de utilidad para evitar fraude en reportes de ingresos y pagos de impuestos, se busca adicional realizar un modelo que represente la relación entre las ganancias y la edad de las personas, así como la relación entre las ganancias y el género, con el fin de analizar la brecha salarial que podrían o no tener las personas de género femenino con respecto al masculino. \\
 
-En este caso se utiliza la encuesta realizada en 2018 restringida a individuos mayores de 18 años. Para el análisis que se busca realizar se requieren determinar una(s) variables(s) que midan adecuadamente los \emph{earnings} (ganancias) y el \emph{income} (ingreso). 
-En economía laboral ambas cosas son conceptualmente diferentes: mientras que las ganancias corresponden al salario o ingresos laborales, el ingreso fuentes distintas al factor trabajo como las ganancias de capital CITA. Los datos empleados fueron obtenidos mediante \emph{webscrapping}, método que facilita la extracción de información de páginas web. El código de obtención de información y el desarrollo de los algoritmos previamente descritos se desarrollan empleando \emph{R} como leguaje de programación.
-\\
-
-Para medir \emph{earnings} se emplea el ingreso laboral (\textit{y\_ingLab\_m} en la GEIH). De acuerdo a una exploración previa de los datos, esta variable se puede calcular de dos formas: en primer lugar, como la suma de los salarios 
+Para el análisis que se busca realizar, se requiere determinar una(s) variables(s) que mida(n) adecuadamente los \emph{earnings} (ganancias) y el \emph{income} (ingreso). En economía laboral ambas cosas son conceptualmente diferentes: mientras que las ganancias corresponden al salario o ingresos laborales, el ingreso se compone, además de los ingresos laborales, de ganancias de capital \citep{angrist1999}. Para medir \emph{earnings} se emplea el ingreso laboral (\textit{y\_ingLab\_m} en la GEIH). De acuerdo a una exploración previa de los datos, esta variable se puede calcular de dos formas: en primer lugar, como la suma de los salarios 
 percibidos por las ocupaciones primarias (\textit{y\_salary\_m}) y secundarias (\textit{y\_salarySec\_m}), beneficios laborales como auxilio de transporte (\textit{y\_auxilioTransp\_m}), auxilio de vivienda (\textit{y\_vivienda\_m}), viaticos (\textit{y\_viaticos\_m}), salarios en especie (\textit{y\_especie\_m}), 
-bonificaciones (\textit{y\_bonificaciones\_m}) y la proporción mensual de los diferentes tipos de prima. Otra alternativa es mediante la suma del ingreso percibido por la ocupación primaria (\textit{impa}) y secundaria (\textit{isa}) pero excluyendo los montos mensuales de subsidios alimenticios (\textit{y\_auxilioAliment\_m}) y subsidios por accidentes (\textit{y\_accidentes\_m}), así como las ganancias de los trabajadores cuenta propia (\textit{y\_gananciaNeta\_m}). Esta variable es más apropiada que simplemente el salario (\textit{y\_salary\_m}) para medir \emph{earnings} ya que captura también los ingresos laborales de ocupaciones secundarias, cosa que no hace la primera.\\
+bonificaciones (\textit{y\_bonificaciones\_m}) y la proporción mensual de los diferentes tipos de prima. \\
 
-Para medir \emph{income} se utilizará el ingreso total (\textit{ingtot}). Esta variable, además de incluir el ingreso laboral, contempla las ganancias de los trabajadores cuenta propia, los ingresos por arrendamientos e intereses (\textit{iof6}), jubilaciones y pensiones (\textit{iof2}), 
-transferencias monetarias (\textit{iof3i} y \textit{iof3h}), y el ingreso de los desocupados o inactivos (\textit{imdi}). 
-Un hecho ampliamente documentado en las encuestas de hogares es que las características de los individuos explican el patrón de datos faltantes en las variables de ingreso CITA. Esto indica que no es apropiado omitir los datos faltantes pues esto sesgaría la distribución
-de ingresos en los análisis posteriores. En la investigación de \cite{imputacionGEIH}, encuentran que el método de imputación óptimo para la GEIH es el método Hot Deck. De acuerdo a la descripción metodológica del DANE, el proceso de imputación de las variables de ingreso ya fue realizado, y estas variables
+Una alternativa para calcular \emph{earnings} es mediante la suma del ingreso percibido por la ocupación primaria (\textit{impa}) y secundaria (\textit{isa}) pero excluyendo los montos mensuales de subsidios alimenticios (\textit{y\_auxilioAliment\_m}) y subsidios por accidentes (\textit{y\_accidentes\_m}), así como las ganancias de los trabajadores cuenta propia (\textit{y\_gananciaNeta\_m}). Esta variable es más apropiada que simplemente el salario (\textit{y\_salary\_m}) para medir \emph{earnings} ya que captura también los ingresos laborales de ocupaciones secundarias, cosa que no hace la primera. Para medir \emph{income} se utilizará el ingreso total (\textit{ingtot}). Esta variable, además de incluir el ingreso laboral, contempla las ganancias de los trabajadores cuenta propia, los ingresos por arrendamientos e intereses (\textit{iof6}), jubilaciones y pensiones (\textit{iof2}), 
+transferencias monetarias (\textit{iof3i} y \textit{iof3h}), y el ingreso de los desocupados o inactivos (\textit{imdi}). \\
+
+Un hecho ampliamente documentado en las encuestas de hogares es que las características de los individuos explican el patrón de datos faltantes en las variables de ingreso \citep{imputacionGEIH}. Esto indica que no es apropiado omitir los datos faltantes pues esto sesgaría la distribución
+de ingresos en los análisis posteriores. \cite{imputacionGEIH}, encuentran que el método de imputación óptimo para la GEIH es el método Hot Deck. De acuerdo con la descripción metodológica del DANE, el proceso de imputación de las variables de ingreso ya fue realizado por este método, y estas variables
 se representan en la base con el sufijo \emph{es} (\textit{impaes} para la imputación de la variable \textit{impa} o ingreso de la ocupación principal, etc.). En el cuadro \ref{tbl:DatosFaltantes} se presenta un conteo de los datos faltantes en las variables de Ingreso Laboral e Ingreso Total.
 
 
@@ -74,7 +78,7 @@ aprovechando esta imputación al sustraer las variables adecuadas (como la ganan
 En la última fila del cuadro \ref{tbl:DatosFaltantes} se muestra la variable con la corrección. Los demás datos faltantes consisten en casos donde el individuo es un trabajador por cuenta propia para el cual no es posible determinar qué parte de sus ganancias corresponde a ingresos laborales, quedando en total 4872 datos donde no es posible realizar imputación sin sesgar los datos.\\
 
 El cuadro \ref{tbl:estadisticasDesc} contiene algunas estadísticas descriptivas para estas variables. Como puede observarse, tras utilizar la imputación del DANE para el Ingreso Laboral se obtiene una distribución a la izquierda de la distribución de Ingreso Total pues la media, la mediana y el percentil 90 son inferiores a los de esta última. 
-Esto es de esperarse pues el Ingreso Total contiene al Ingreso Laboral junto a otros tipos de ingresos, lo que debería producir valores más grandes para cada individuo. De no utilizarse los valores imputados, como puede observarse en la tercera fila, se tendria una distribución de Ingreso Laboral a la derecha de la distribución de Ingreso Total, lo cual es conceptualmente incorrecto.
+Esto es de esperarse pues el Ingreso Total contiene al Ingreso Laboral junto a otros tipos de ingresos, lo que debería producir valores más grandes para cada individuo. De no utilizarse los valores imputados, como puede observarse en la tercera fila, se tendría una distribución de Ingreso Laboral a la derecha de la distribución de Ingreso Total, lo cual es conceptualmente incorrecto.
 
 
 \begin{table}[H]
@@ -100,7 +104,7 @@ Esto es de esperarse pues el Ingreso Total contiene al Ingreso Laboral junto a o
   \end{table}
 
  Las variables que se utilizarán para predecir los ingresos descritos previamente son: la edad (\textit{age}), la pertenencia al género femenino (\textit{female}), la tenencia de educación universitaria (\textix{college\_2}), la condición de ser trabajador cuenta propia (\textit{cuentaPropia}), la condición de informalidad (\textit{informal})  y el oficio (\textit{oficio}). 
- En el cuadro \ref{tbl:estadisticasDescInd} se presentan algunas estadísticas descriptivas. Este indica que la edad, que es un variable numérica, es en promedio de 42 años y que la distribución es aproximadamente simétrica pues la mediana (20 años) está cerca a la media. Así mismo se observa que la edad más común es de 23 años, y que existe, en promedio, una desviación de 17 años respecto a la media. 
+ En el cuadro \ref{tbl:estadisticasDescInd} se presentan algunas estadísticas descriptivas. Este indica que la edad, que es un variable numérica, es en promedio de 42 años y que la distribución tiene un sesgo positivo pues la mediana (40 años) está a la izquierda de la media. Así mismo se observa que la edad más común es de 23 años, y que existe, en promedio, una desviación de 17 años respecto a la media. 
 A diferencia de la edad, la condición de ser mujer, de tener educación universitaria, ser cuenta propia o trabajador informal son todas variables dicótomas. El promedio de las variables dicótomas indica la frecuencia con que la condición descrita por la variable se encuentra en la muestra. Por lo tanto, el 53\% de los individuos son mujeres, el 30\% tiene educación universitaria, el 21\% es trabajador por cuenta propia, y el 59 \% es formal; estas frecuencias son consistentes con las modas de cada distribución. 
 Finalmente, el oficio es una variable multinomial; la categoría ocupacional más común es la 45, que consiste en vendedores ambulantes o a domicilio. Se debe notar que la variable de educación universitaria es una variable nueva que debió calcularse debido a que la variable de educación universitaria existente en la base de datos (\textit{college}) no refleja en realidad el nivel de educación superior si no el nivel de educación media. 
 
@@ -231,6 +235,78 @@ Finalmente, el oficio es una variable multinomial; la categoría ocupacional má
     \label{fig:ingresos_edad}
 \end{figure}
 
+\section{Análisis de relación edad-\emph{earnings}}
+
+La hipótesis realizada sobre la relación entre estas variables es: "Los salarios tienden a ser bajos cuando el trabajador es joven; aumentan a medida que el trabajador envejece, alcanzando su punto máximo alrededor de los 50 años; y el salario tiende a permanecer estable o a disminuir ligeramente después de los 50 años", sin embargo, como se observa en la figura  \ref{fig:ingresos_edad}, el comportamiento es diferente, ya que en nuestra muestra se observa que el punto máximo de ingresos no está alrededor de los 50 años sino mucho antes, en un rango entre los 30 y los 45 años, adicional a esto, no se mantienen estables luego de los 50 años; para el caso de Ingresos Totales, se podría tomar como cierto que disminuye ligeramente luego de esta edad, sin embargo no es un decremento constante, sino que aumenta su porcentaje con el paso de los años, por lo tanto se considera que la variación no es ligera. Para el caso del ingreso laboral se observa la disminución de ingresos de una forma mucho más agresiva, para la cuál tampoco se cumple la premisa.
+
+En la figura \ref{fig:RegAgeEarnings} se puede observar la distribución de los datos, donde se evidencia que el valor máximo en ganancias se presenta antes de los 50 años, adicional a esto se observan dos regresiones en ella. En rojo, el resultado de la regresión sugerida con la fórmula $Earnings = \beta1 + \beta2Age + \beta3Age^2 + u$, donde se puede observar que por la imputación y su gran cantidad de datos en 0 a edades cercanas a los 100 años tiende a un número negativo, por lo cuál se deduce que aún eliminando la linealidad agregando una variable cuadrática a la regresión, no es suficiente para representar de forma significativa a la distribución de los datos. Se observa además en azul una regresión aumentando el grado de complejidad (aumentando el grado de la regresión), de cuadrado a cúbico: $Earnings = \beta^1 + \beta2Age + \beta3Age^2 + \beta4Age^3 + u$, obteniendo como resultado lo que se observa en la figura \ref{fig:RegAgeEarnings}, en la cual se observa que tiene una forma muy similar a la anterior, salvo porque tiene un aumento cerca de los 100 años, lo cual no representa a la naturaleza de los datos (tampoco los números negativos). Se hicieron experimentos aumentando aún más el grado de complejidad pero el resultado es muy similar al cúbico.
+
+\begin{figure}[H]
+    \centering
+    \caption{Distribución de datos y regresión para relación edad-earnings}
+    \includegraphics[width=\textwidth]{../views/LR_age_earnings.png}
+    \label{fig:RegAgeEarnings}
+\end{figure}
+
+En general aumentar la complejidad solo modificó el comportamiento en datos superiores a 80 años, donde los datos en su mayoría son cero, de manera que la ecuación de regresión sugerida al cuadrado funciona de forma aceptable, se observan bastante más bajas que muchos datos, pero sucede debido a que hay muy pocas personas con ganancias tan grandes, la mayoría de estos datos corresponden a earnings bajos.
+
+Se realiza bootstrap 1000 veces, obteniendo la distribución que se observa en la figura \ref{fig:boostrap}, donde se realiza además el cálculo de los intervalos de confianza por medio de los métodos normal, básico y por percentiles, donde los resultados son en los 3 casos, con un nivel del 95\%, e intervalos de confianza pequeños, en un rango de (-0.17, -0.14), como se observa en la figura \ref{fig:boostrap}.
+
+\begin{figure}[H]
+    \centering
+    \caption{Intervalos de confianza con Bootstrap}
+    \includegraphics[width=\textwidth]{../views/bootstrap.png}
+    \label{fig:boostrap}
+\end{figure}
+\section{Análisis de relación género-\emph{earnings}}
+
+En esta sección se analiza como la variable de ingresos se ve explicada por el genero y si esta brecha se ve afectada por la edad y por los distintos tipos de oficios. El set de datos se utiliza la variable ingtot (ingreso total), considerando no solo el salario sino los diferentes ingresos que tiene las personas, esta es la variable objetivo a predecir. Inicialmente como variable dependiente para realizar la estimación del coeficiente se utiliza la variable factor Female, que indica con un 1 si el individuo es femenino.\\
+
+\begin{figure}[H]
+    \centering
+    \caption{Distribución de genero}
+    \includegraphics[width=\textwidth]{../views/ingreso_0.png}
+    \label{fig:femenino}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Distribución de genero, ingreso total 0}
+    \includegraphics[width=\textwidth]{../views/ingreso_0.png}
+    \label{fig:ingreso_0}
+\end{figure}
+
+Los datos están distribuidos como muestra la figura \ref{fig:femenino}, donde las mujeres representan un 53\% y Los hombres 47\%. No existen datos faltantes en las dos variables. Al realizar la estimación se encontró que ser mujer afectaba en una reducción del -190\%, esto debido a que muchos de los salarios muy altos eran de hombres (ver figura \ref{fig:outl}) y se realizó el ajuste de la distribución (ver figura \ref{fig:ajustado}). La distribución de las personas con ingresos 0 (Figura \ref{fig:ingreso_0}) muestra que el 69\% de los registros con este nivel de ingresos son mujeres, por tanto se realizó una limpieza de outliers para correr nuevamente la estimación.\\
+
+\begin{figure}[H]
+    \centering
+    \caption{Distribución de Ingresos - outliers}
+    \includegraphics[width=\textwidth]{../views/outliers.png}
+    \label{fig:outl}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Distribución de Ingresos - sin outliers}
+    \includegraphics[width=\textwidth]{../views/ajustado.png}
+    \label{fig:ajustado}
+\end{figure}
+
+En la estimación con el nuevo set de datos se observa con una alta significancia (p value=0.00002) que las mujeres tienen un 23\% menos de ingresos. El poder predictivo del modelo incluyendo únicamente la variable genero es muy bajo, presentando un R2 de 0.025. Es ligeramente mejor utilizar el modelo que un promedio simple para predecir.\\
+
+
+Al incluir en el modelo la variable de las edades, se puede observar como a medida que aumentan las edades también existe una reducción de los ingresos. Analizando en tres grupos las edades, de 18 a 30 años la brecha es de 11\%, de 30 a 50 la brecha es de 24\% y para personas mayores de 50 la brecha aumenta hasta llagar a 30\%. Es evidente como con la edad avanzan están brechas, pero también se evidencia como en las nuevas generaciones se ve una reducción paulatina de esta desigualdad.\\
+
+
+Al incluir variables de los diferentes oficios se incrementa el R2 a 0.16, manteniéndose bajo. Un modelo lineal sigue siendo muy básico para estimar el ingreso total con esas variables, pero si se observa que para los diferentes oficios la brecha del genero es diferente. \\
+
+\begin{figure}[H]
+    \centering
+    \caption{Distribución de Ingresos - sin outliers}
+    \includegraphics[width=\textwidth]{../views/ajustado.png}
+    \label{fig:ajustado}
+\end{figure}
+
 \section{Análisis de predicción para \emph{earnings}}
 
 En esta sección se busca la especificación que permita generar la mejor predicción del ingreso laboral.
@@ -298,7 +374,7 @@ Donde $\hat{u_j}$ corresponde a los residuales del modelo 8 obtenidos para la pr
     \label{fig:influencia}
 \end{figure}
 
-A continuación se realiza el ejercicio de estimar el RMSE de los dos mejores modelos utilizando Leave One Out Cross Validation (LOOCV), el cual consiste en estimar los modelos para cada subconjunto posible de los datos tales que una de las observaciones quede por fuera de la muestra de entrenamiento. En el cuadro \ref{tbl:RMSELOOCV} se reporta el RMSE de los modelos 7 y 8 del cuadro \label{tbl:RMSEearnings} calculado por este método.
+A continuación se realiza el ejercicio de estimar el RMSE de los dos mejores modelos utilizando Leave One Out Cross Validation (LOOCV), el cual consiste en estimar los modelos para cada subconjunto posible de los datos tales que una de las observaciones quede por fuera de la muestra de entrenamiento. En el cuadro \ref{tbl:RMSELOOCV} se reporta el RMSE de los modelos 7 y 8 del cuadro \ref{tbl:RMSEearnings} calculado por este método.
 
 
 \begin{table}[H]
@@ -314,7 +390,12 @@ Modelo & RMSE LOOCV \\ \midrule
 \label{tbl:RMSELOOCV}
 \end{table}
 
-Como puede observarse, el RMSE del modelo 8 es inferior al del modelo 7. No obstante, al compararlo con el RMSE del cuadro \label{tbl:RMSEearnings}, se observa que, para ambos modelos, el RMSE calculado por LOOCV es mayor. Como el RMSE calculado por LOOCV tiene menor sesgo es posible afirmar que el RMSE calculado usando el subconjunto de prueba subestima el verdadero RMSE. 
+Como puede observarse, el RMSE del modelo 8 es inferior al del modelo 7. No obstante, al compararlo con el RMSE del cuadro \ref{tbl:RMSEearnings}, se observa que, para ambos modelos, el RMSE calculado por LOOCV es mayor. Como el RMSE calculado por LOOCV tiene menor sesgo es posible afirmar que el RMSE calculado usando el subconjunto de prueba subestima el verdadero RMSE. 
+
+
+\section{Repositorio}
+
+El repositorio se puede encontrar en el siguiente enlace:\\ \url{https://github.com/AlisonRuiz/Predicting-Income} 
 
 
 \bibliographystyle{apalike}

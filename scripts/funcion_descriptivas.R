@@ -1,5 +1,15 @@
-library(xtable)
 
+# LIBRERIAS ---------------------------------------------------------------
+
+
+library(xtable)
+library(data.table)
+
+#Este código es tomado de: sdaza.com. Permite crear tablas de variables descriptivas con base en una función descriptiva 
+#que describe las funciones que se quieren utilizar.
+
+
+# FUNCION -----------------------------------------------------------------
 
 
 createDescriptiveTable = function(datasets,
